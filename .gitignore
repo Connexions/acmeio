@@ -1,0 +1,4 @@
+# Development #
+###############
+*.egg-info
+*.pyc
