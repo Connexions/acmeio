@@ -12,9 +12,9 @@ requires = [
     'waitress',
     ]
 
-setup(name='fence',
+setup(name='acmeio',
       version='0.0',
-      description='fence',
+      description='acmeio',
       long_description=README + '\n\n' + CHANGES,
       classifiers=[
         "Programming Language :: Python",
@@ -31,9 +31,9 @@ setup(name='fence',
       zip_safe=False,
       install_requires=requires,
       tests_require=requires,
-      test_suite="fence",
+      test_suite="acmeio",
       entry_points="""\
       [paste.app_factory]
-      main = fence:main
+      main = acmeio:main
       """,
       )
