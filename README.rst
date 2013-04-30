@@ -164,3 +164,28 @@ configuration. By default, anonymous API calls are allowed, but
 restrictions apply at the application layer. Additional restrictions
 may be applied at the webserver layer (contact your system
 administrator for information).
+
+Example Usage
+-------------
+
+The following example shows a job submission for a Collection named
+col10001 version 1.1 at http://cnx.org/content. This job is being
+submitted for a build of the CompleteZip using the Latex engine and
+built against Connexions specific context on the desktop platform.
+::
+
+    $ curl --form job-type=cnx.desktop.latex.completezip \
+    > --form id=col10001 --form version=1.1 \
+    > --form url=http://cnx.org/content \
+    > --form content-url=http://cnx.org/content/col10001 \
+    > http://localhost:6543/
+    http://localhost:6543/status/7
+
+After the job is submitted we can check it's status using the
+resulting URL.
+::
+
+    $ curl http://localhost:6543/status/7
+    {"tasks-completed": 0, "tasks-total": 1,
+     "messages": [{"timestamp": "2013-04-30 11:48:53.904134", "message": "", "type": "Waiting"}], 
+     "last-modified": "2013-04-30 11:48:53.904134"}
