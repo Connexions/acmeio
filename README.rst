@@ -7,19 +7,21 @@ sent to a message queue (e.g. RabbitMQ).
 API
 ---
 
-The API consists of two routing paths, one for posting and one for
+The API consists of a few routing paths, one for posting and one for
 checking the status of a job.
 
-* `Job creation`_
+* Job creation
 * Job status
+* Job type information
+* Job listing
 
 Job creation
-------------
+~~~~~~~~~~~~
 
 To create a new job, we post data to ``/`` with the following fields
 and values.
 
-job-type
+:job-type:
   This is a string of dot separated values. The syntax of this value
   is as follows:
   ``<platform>.<architecture>.<suite(princexml|latex)>.<transform>``.
@@ -28,41 +30,43 @@ job-type
 
 Mutually exclusive fields:
 
-content-url
+:content-url:
   A URL to a piece of content accesible to the transformation code,
   which likely means public. 
 
-content-body
+:content-body:
   The raw content.
 
 Optional fields used to enable repository content discovery:
 
-url
+:url:
   The base URL to a repository, archive or web view instance. (I
   imagine that these times of applications will at some point have
   type discovery on them so that we use the correct interfacing.)
 
-id
+:id:
   The ID of the content in the repository. 
 
-version
+:version:
   The version of the content that the transform should work
   against. This will default to ``latest``.
 
 Optional field for job status updating:
 
-callback-url
+:callback-url:
   A URL that is pinged after the tranformation has been completed. (The
   details of this callback have not yet been worked out. For example,
   is this a simple GET against the URL or are we posting info?)
 
-On a successful post, the response will be a URL where the submitting
-party can watch the status of the job.
+On a successful post response will an HTTP 202 with a URL. The URL can
+be used by the submitting party to watch the state of the job.
 
-202 - with supply status url
+If a problem with the submission occures, an HTTP 400 will result. A
+response body containing an error message may be supplied, but can not
+be relied upon.
 
 Job status
-----------
+~~~~~~~~~~
 
 To watch the status of a submitted job you will need the job id. The
 path to the status is ``/status/<job-id>``.
@@ -86,8 +90,80 @@ invoked exceptions, the response will be an HTTP 500 with custom
 response information as well as logging and traceback information if
 available.
 
-Additional routes
------------------
+Job type info
+~~~~~~~~~~~~~
 
-GET / - job-type info
-GET /status - Listing of all jobs
+Job type information is represented by a '.' (dot) separated value
+that closely reflects the message queue exchange naming syntax. For
+example, ``cnx..princexml.epub`` would build a CNX branded EPub using
+the PrinceXML XML transforms engine. Note the absense of the second
+value, meaning 'any' value should suffice. 
+
+The format of the job type string is as follows:
+``<context>.<platform>.<engine(princexml|latex)>.<format>``.
+
+:context: A project or suite that may or may not effect layout and
+  branding of the generated content.
+:platform: A architecture or platform specification. If used, it may
+  effect the dimensions, coloration, interactablity, etc. For
+  example, the 'screenreader' platform may be used to, say make all
+  text and images gray scale.
+:engine: An XML or data processing engine used to transform XML based
+  content to other formats.
+:format: The format the transformation should result in. 
+
+The values used to represent these options are discoverable via a GET
+on the application root. The response of this request is a JSON object
+keyed by option with sub-objects containing the name and descriptions
+of each value.
+
+The data structure of a GET on '/' looks something like this::
+
+    {'context': [{'id': 'cnx', 'name': 'Connexions',
+                  'description': 'Connexions formatting and branding'},
+                 {'id': 'openstax', 'name': 'OpenStax College',
+                  'description': 'OpenStax College formatting'}
+                  ],
+     'platform': [...],
+     ...
+     }
+
+List of jobs with latest status
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A GET on '/status' will provide a list of active jobs with their
+latest status. The response is a JSON list of jobs that resembles the
+following structure::
+
+    {'1': <job-status-object>, '2': <job-status-object>}
+
+And the job-status-object is similar to that returned from the status
+URL, except it only contains one message rather than the entire
+message history.
+    
+This service is only available to authenticated service
+members. Unauthenticated members will recieve an HTTP 404 Not Found.
+
+API Authentication
+------------------
+
+Authentication is done using an API Key. The API Key can be aquired
+via a connecting Connexions Authentication services
+instance. Optionally, an API Key may be manually configured in the
+application settings (no Connexions Authentication service instance
+required).
+
+The following illustrates an HTTP request using the API Key for
+authentication and authorization.
+::
+
+    GET /status HTTP/1.1
+    ...
+    Authorization: Key <api-key-goes-here>
+    ...
+
+Anonymous access to the API can be disabled in the application's
+configuration. By default, anonymous API calls are allowed, but
+restrictions apply at the application layer. Additional restrictions
+may be applied at the webserver layer (contact your system
+administrator for information).
