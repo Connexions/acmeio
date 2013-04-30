@@ -8,7 +8,10 @@
 """Web application programming interface (API)"""
 from pyramid.view import view_config
 from pyramid.response import Response
-from pyramid.httpexceptions import HTTPBadRequest
+from pyramid.httpexceptions import (
+    HTTPOk, HTTPAccepted,
+    HTTPBadRequest, HTTPInternalServerError,
+    )
 from pyramid.threadlocal import get_current_registry
 
 from amqplib import client_0_8 as amqp
@@ -96,18 +99,26 @@ def _acquire_pybit_settings():
     settings = pybit.load_settings(pybit_config_path)[0]
     return settings
 
+def _get_pybit_database():
+    settings = _acquire_pybit_settings()
+    return Database(settings['db'])
+
 def _submit_to_pybit(type, id, version, url):
     pybit_settings = _acquire_pybit_settings()
     # Grab all the sent data. And make sure it's all here.
     dist, arch, suite, format = type.split('.')
 
     # Pass to controller to queue up
-    pybit_db = Database(pybit_settings['db'])
+    pybit_db = _get_pybit_database()
     transport = Transport(None, '', url, '')
     controller = Controller(pybit_settings, pybit_db)
     jobs = controller.process_job(dist, arch, version, id,
                                   suite, format, transport)
     return jobs
+
+def _get_job_history(job_id):
+    pybit_db = _get_pybit_database()
+    return pybit_db.get_job_statuses(job_id)
 
 @view_config(route_name='new', request_method='POST')
 def post_job(request):
@@ -134,8 +145,26 @@ def post_job(request):
     urls = [request.route_url('status', id=id) for id in job_ids]
     return Response(', '.join(urls))
 
-@view_config(route_name='status', request_method='GET')
+@view_config(route_name='status', request_method='GET', renderer='json')
 def status(request):
     """Retrieve the status of the job."""
-    status_info = request.matchdict['id']
-    return Response(status_info)
+    job_id = request.matchdict['id']
+    job_history = _get_job_history(job_id)
+
+    # XXX Not ideal to be checking for a particular status string...
+    latest = job_history[-1]
+    if latest.status == 'Done':
+        request.response_status = '200 Ok'
+        return ''
+    elif latest.status in ('Blocked', 'Failed',):
+        raise HTTPInternalServerError()
+
+    tasks_completed = 0
+    tasks_total = 1
+    messages = [{'type': m.status, 'timestamp': m.time, 'message': ''}
+                for m in job_history]
+    data = {'tasks-completed': tasks_completed, 'tasks-total': tasks_total,
+            'messages': messages, 'last-modified': latest.time,
+            }
+    request.response_status = '202 Accepted'
+    return data
