@@ -23,10 +23,7 @@ and values.
 
 :job-type:
   This is a string of dot separated values. The syntax of this value
-  is as follows:
-  ``<platform>.<architecture>.<suite(princexml|latex)>.<transform>``.
-  For example, ``cnx..princexml.epub`` to build a CNX branded EPub
-  using the princexml transforms engine.
+  is as follows: ``<context>.<platform>.<engine(princexml|latex)>.<format>``.
 
 Mutually exclusive fields:
 
