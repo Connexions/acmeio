@@ -4,6 +4,32 @@ Transformation Service
 This application is an interface to submitting and monitoring jobs
 sent to a message queue (e.g. RabbitMQ).
 
+Installation
+------------
+
+Dependencies:
+
+- Postgresql
+- RabbitMQ
+- PyBit (to be removed)
+
+To install the package, use the following command::
+
+    $ python setup.py install
+
+You may need to change the values in ``pybit.conf``. See PyBit's
+documentation for details.
+
+There is a temporary addition to PyBit's SQL schema that ties into the
+job information. You'll need to install this using::
+
+    $ psql pybit
+    > \i sql_addtions.sql
+
+And to run the application use the following::
+
+    $ pserve production.ini
+
 API
 ---
 
