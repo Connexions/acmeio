@@ -10,6 +10,11 @@ requires = [
     'pyramid',
     'pyramid_debugtoolbar',
     'waitress',
+    # PyBit and dependencies
+    'pybit',
+    'psycopg2',
+    'amqplib',
+    'jsonpickle',
     ]
 
 setup(name='acmeio',
