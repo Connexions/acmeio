@@ -215,3 +215,10 @@ resulting URL.
     {"tasks-completed": 0, "tasks-total": 1,
      "messages": [{"timestamp": "2013-04-30 11:48:53.904134", "message": "", "type": "Waiting"}], 
      "last-modified": "2013-04-30 11:48:53.904134"}
+
+License
+-------
+
+This software is subject to the provisions of the GNU Affero General
+Public License Version 3.0 (AGPL). See license.txt for details.
+Copyright (c) 2013 Rice University
