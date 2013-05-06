@@ -6,6 +6,7 @@
 # See LICENCE.txt for details.
 # ###
 """Web application programming interface (API)"""
+from urlparse import urlparse
 from pyramid.view import view_config
 from pyramid.response import Response
 from pyramid.httpexceptions import (
@@ -124,22 +125,30 @@ def _get_job_history(job_id):
 def post_job(request):
     """Post a new job"""
     job_type = request.params['job-type']
-    content_id = request.params['id']
-    content_version = request.params['version']
-    content_url = request.params['url']
     callback_url = request.params.get('callback-url', None)
 
     # Then content will come in as either raw data or a URL.
     content_url = request.params.get('content-url', None)
     content_body = request.params.get('content-body', None)
-    if content_url is None and content_body is None:
-        # ??? Shall we default to knowing the structure of the
-        #     content-url using the id, version and url?
+    if content_url is not None:
+        # XXX This information can be removed after PyBit has
+        #     been factored out.
+        url_parts = urlparse(content_url)
+        base_url = "{}://{}/".format(
+            url_parts.scheme and url_parts.scheme or 'http',
+            url_parts.netloc,
+            )
+        # This assumes a (plone based) repository a URL path structure of
+        #   /content/<id>/<version>
+        id, version = url_parts.path.rstrip('/').split('/')[-2:]
+    elif content_body is not None:
+        # TODO Check content_body is an EPUB formatted piece of content.
+        raise NotImplementedError()
+    else:
         return HTTPBadRequest("Missing either a content-url or content-body")
 
     # Submit the job...
-    job_ids = _submit_to_pybit(job_type, content_id, content_version,
-                               content_url)
+    job_ids = _submit_to_pybit(job_type, id, version, base_url)
     # TODO There is nowhere to put a callback url at this time...
 
     urls = [request.route_url('status', id=id) for id in job_ids]

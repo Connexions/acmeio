@@ -60,20 +60,6 @@ Mutually exclusive fields:
 :content-body:
   The raw content.
 
-Optional fields used to enable repository content discovery:
-
-:url:
-  The base URL to a repository, archive or web view instance. (I
-  imagine that these times of applications will at some point have
-  type discovery on them so that we use the correct interfacing.)
-
-:id:
-  The ID of the content in the repository. 
-
-:version:
-  The version of the content that the transform should work
-  against. This will default to ``latest``.
-
 Optional field for job status updating:
 
 :callback-url:
