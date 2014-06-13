@@ -38,11 +38,11 @@ setup(name='acmeio',
       zip_safe=False,
       install_requires=requires,
       tests_require=(
-                'WebTest',
+                'mock',
                 'pika',
-                'WSGIProxy2'
+                'WebTest',
                 ),
-      test_suite="acmeio",
+      test_suite="acmeio.tests",
       entry_points="""\
       [paste.app_factory]
       main = acmeio:main

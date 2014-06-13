@@ -9,18 +9,19 @@
 import json
 import jsonpickle
 import pika
+import pyramid.paster
 import re
 import unittest
-        
+from webtest import TestApp
+      
 class AcmeioFunctionalTests(unittest.TestCase):
     
     channel = None
     
-    def setUp(self):
-        
+    def setUp(self):       
         # import and create a TestApp to test requests
-        from webtest import TestApp
-        self.testapp = TestApp('http://localhost:6543/')
+        app = pyramid.paster.get_app('production.ini')
+        self.testapp = TestApp(app)
         credentials = pika.PlainCredentials('guest', 'guest')
         parameters = pika.ConnectionParameters('localhost', 5672, None,
                                            credentials)
@@ -43,18 +44,17 @@ class AcmeioFunctionalTests(unittest.TestCase):
         status_dict = json.loads(status_response.body)
         self.assertEqual(status_dict['tasks-completed'], 0)
         self.assertEqual(status_dict['tasks-total'], 1)
-        
+
         queue = 'cnx_desktop_latex_completezip'
         channel = AcmeioFunctionalTests.channel
-        
+
         # Get the job from the queue that was just put there
-        tag = channel.basic_get(queue='cnx_desktop_latex_completezip', no_ack=True)
+        tag = channel.basic_get(queue=queue, no_ack=True)
         # Last element of the message is the encoded build request
         build_request = jsonpickle.decode(tag[-1])
-        
         # Make sure the build request has the right stuff in it
         job_id = build_request.get_job_id()
-        self.assertEquals(job_id, int(re.sub('http://localhost:6543/status/', '', response.body)))
+        self.assertEquals(job_id, int(re.sub('http://localhost/status/', '', response.body)))
         package = build_request.get_package()
         self.assertEquals(package, 'col10642')
         version = build_request.get_version()
@@ -69,13 +69,13 @@ class AcmeioFunctionalTests(unittest.TestCase):
                     'url':'http://cnx.org/content', 
                     }, status=400)
         # incorrect job type, creates server error
-        response = self.testapp.post('/',
-                {
-                    'job-type':'cnx.desktop.Purple.completezip', 
+        params = {'job-type':'cnx.desktop.Purple.completezip', 
                     'id':'col10001', 'version':'1.1', 
                     'url':'http://cnx.org/content',                     
                     'content-url':'http://cnx.org/content/col10001',
-                    }, status=500)
+                    }
+        self.assertRaises(IndexError, self.testapp.post, '/', params)
+                    
         # request type doesn't match one defined in acmeio, should get not found error
         response = self.testapp.get('/',
                 {
