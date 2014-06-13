@@ -1,0 +1,31 @@
+language: python
+python:
+    - "2.7"
+addons:
+    postgresql: 9.3
+services:
+    - rabbitmq
+before_install:
+    # Install pybit
+    - git clone https://github.com/nicholasdavidson/pybit.git
+    - cd pybit && python setup.py develop && cd ..
+    # Set up postgres roles
+    - sudo -u postgres psql -d postgres -c "CREATE USER pybit WITH SUPERUSER PASSWORD 'pybit';"
+    - sudo -u postgres createdb -O pybit pybit
+    # Set up the data base
+    - psql --user pybit pybit --command "\i pybit/db/schema.sql"
+    - psql --user pybit pybit --command "\i populate_cnx.sql"
+    - psql --user pybit pybit --command "\i sql_additions.sql"
+    # Install coverage
+    - pip install coverage
+    - pip install coveralls
+install:
+    - python setup.py install
+    - pserve production.ini start
+script:
+    - coverage run --source=acmeio setup.py test
+after_success:
+    # Report test coverage
+    - coveralls
+notifications:
+    email: false	

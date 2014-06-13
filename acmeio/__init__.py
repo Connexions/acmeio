@@ -14,5 +14,5 @@ def main(global_config, **settings):
     config = Configurator(settings=settings)
     config.add_route('new', '/')
     config.add_route('status', '/status/{id}')
-    config.scan()
+    config.scan(ignore='ameio.tests')
     return config.make_wsgi_app()
