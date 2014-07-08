@@ -21,6 +21,7 @@ before_install:
     - pip install coveralls
 install:
     - python setup.py install
+before_script:
     - pserve production.ini start
 script:
     - coverage run --source=acmeio setup.py test
