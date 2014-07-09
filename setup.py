@@ -15,7 +15,7 @@ requires = [
     'psycopg2',
     'amqplib',
     'jsonpickle',
-    'bottle',
+    'bottle'
     ]
 
 setup(name='acmeio',
@@ -38,10 +38,10 @@ setup(name='acmeio',
       zip_safe=False,
       install_requires=requires,
       tests_require=(
-          'WebTest',
-          'pika',
-          'WSGIProxy2'
-          ),
+                'WebTest',
+                'pika',
+                'WSGIProxy2'
+                ),
       test_suite="acmeio",
       entry_points="""\
       [paste.app_factory]
