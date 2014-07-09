@@ -23,8 +23,10 @@ install:
     - python setup.py develop
 before_script:
     - pserve production.ini start
-    - sleep 60
-    - ps aux | grep pserve
+    - sleep 20
+    - ls
+    - cat pyramid.log
+    - netstat -alnp | grep LISTEN
 script:
     - coverage run --source=acmeio setup.py test
 after_success:
