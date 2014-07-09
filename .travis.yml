@@ -20,10 +20,11 @@ before_install:
     - pip install coverage
     - pip install coveralls
 install:
-    - python setup.py install
+    - python setup.py develop
 before_script:
     - pserve production.ini start
-    - sleep 15
+    - sleep 60
+    - ps aux | grep pserve
 script:
     - coverage run --source=acmeio setup.py test
 after_success:
