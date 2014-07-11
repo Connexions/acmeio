@@ -15,6 +15,7 @@ requires = [
     'psycopg2',
     'amqplib',
     'jsonpickle',
+    'bottle'
     ]
 
 setup(name='acmeio',
@@ -32,11 +33,15 @@ setup(name='acmeio',
       url='https://github.com/connexions/acmeio',
       license='AGPL',  # See also LICENSE.txt
       keywords='web pyramid pylons',
-      packages=find_packages(),
+      packages=find_packages(exclude=['*.test*']),
       include_package_data=True,
       zip_safe=False,
       install_requires=requires,
-      tests_require=requires,
+      tests_require=(
+                'WebTest',
+                'pika',
+                'WSGIProxy2'
+                ),
       test_suite="acmeio",
       entry_points="""\
       [paste.app_factory]
