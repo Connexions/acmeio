@@ -22,13 +22,10 @@ before_install:
     - pip install coveralls
 install:
     - python setup.py develop
-before_script:
-    - pserve production.ini start
-    - sleep 20
 script:
     - coverage run --source=acmeio setup.py test
 after_success:
     # Report test coverage
     - coveralls
 notifications:
-    email: false	
+    email: false    
